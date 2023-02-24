@@ -10,3 +10,4 @@ bash ./scripts_run/cifar10_vgg_structuredPruning_DGX1_RN18_FP32_90E_asuNode.sh
 
 ## Reference
 https://github.com/NVIDIA/DeepLearningExamples
+# Automatic-Attention-Pruning-Improving-and-Automating-Model-Pruning-using-Attentions
