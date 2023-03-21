@@ -9,7 +9,9 @@ The link of the paper is: https://arxiv.org/pdf/2303.08595.pdf.
 
 ## Setup
 We implemented AAP on PyTorch version 1.6.0 and CUDA 11.2, and conducted experiments on 4 Nvidia RTX 2080 Ti GPUs.
+
 We include the Dockerfile that extends the PyTorch NGC container and encapsulates some dependencies. 
+
 About how to build and run the docker, please refer to the commands in the "docker_run.sh".
 
 ## Run the code
