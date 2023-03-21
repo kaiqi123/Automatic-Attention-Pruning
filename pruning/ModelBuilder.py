@@ -6,7 +6,7 @@ from pruning.model_module import PruningModule, MaskedLinear, MaskedConv2d, Mask
 from pruning.model_module import CustomizedRelu, CustomizedRelu6
 
 """
-vgg, mobilenet, and shufflenet use this 
+lenet, vgg, mobilenet, and shufflenet use this;
 mobilenet and shufflenet use conv_mobileNet for all conv layers
 """
 class ModelBuilder(object):

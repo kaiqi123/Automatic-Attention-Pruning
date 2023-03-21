@@ -51,7 +51,6 @@ class ResNetBuilder(object):
 
     def conv(self, kernel_size, in_planes, out_planes, groups=1, stride=1, downsample=False):
         conv = MaskedConv2d if self.mask and downsample==False else nn.Conv2d
-        # conv = nn.Conv2d(
         conv = conv(
             in_planes,
             out_planes,
@@ -116,7 +115,6 @@ class BasicBlock(nn.Module):
         super(BasicBlock, self).__init__()
         self.conv1 = builder.conv3x3(inplanes, planes, stride)
         self.bn1 = builder.batchnorm(planes)
-        # self.relu = builder.activation()
         self.conv1_relu = builder.activation(planes)
         self.conv2 = builder.conv3x3(planes, planes * expansion)
         self.bn2 = builder.batchnorm(planes * expansion, last_bn=True)
@@ -131,7 +129,6 @@ class BasicBlock(nn.Module):
         if self.bn1 is not None:
             out = self.bn1(out)
 
-        # out = self.relu(out)
         out = self.conv1_relu(out)
 
         out = self.conv2(out)
@@ -143,7 +140,6 @@ class BasicBlock(nn.Module):
             residual = self.downsample(x)
 
         out += residual
-        # out = self.relu(out)
         out = self.conv2_relu(out)
 
         return out
@@ -199,7 +195,6 @@ class Bottleneck(PruningModule):
         self.bn3 = builder.batchnorm(planes * expansion, last_bn=True)
         self.conv3_relu = builder.activation(planes * expansion)
 
-        # self.relu = builder.activation()
         self.downsample = downsample
         self.stride = stride
         self.squeeze = (
@@ -212,12 +207,10 @@ class Bottleneck(PruningModule):
         out = self.conv1(x)
         out = self.bn1(out)
         out = self.conv1_relu(out)
-        # print(f"conv1_relu: {out.shape}")
         
         out = self.conv2(out)
         out = self.bn2(out)
         out = self.conv2_relu(out)
-        # print(f"conv2_relu: {out.shape}")
 
         out = self.conv3(out)
         out = self.bn3(out)
@@ -231,7 +224,6 @@ class Bottleneck(PruningModule):
             out = torch.addcmul(residual, 1.0, out, self.squeeze(out))
 
         out = self.conv3_relu(out)
-        # print(f"conv3_relu: {out.shape}")
 
         return out
 
@@ -265,8 +257,7 @@ class ResNet(PruningModule):
         self.layer3 = self._make_layer(builder, block, expansion, widths[2], layers[2], stride=2)
         self.layer4 = self._make_layer(builder, block, expansion, widths[3], layers[3], stride=2)
         self.avgpool = nn.AdaptiveAvgPool2d(1)
-        # self.fc = nn.Linear(widths[3] * expansion, num_classes)
-        self.fc3 = builder.fc(widths[3] * expansion, num_classes) # in order to be consistant with lenet models
+        self.fc3 = builder.fc(widths[3] * expansion, num_classes)
 
     def _make_layer(self, builder, block, expansion, planes, blocks, stride=1):
         downsample = None
@@ -296,22 +287,16 @@ class ResNet(PruningModule):
         return nn.Sequential(*layers)
 
     def forward(self, x):
-        # print("x", x.shape) #torch.Size([64, 3, 224, 224])
-        x = self.conv1(x) #conv1 torch.Size([64, 64, 112, 112])
+        x = self.conv1(x)
         if self.bn1 is not None:
             x = self.bn1(x)
         x = self.conv1_relu(x)
-        # print("conv1", x.shape)
         x = self.maxpool(x)
 
-        x = self.layer1(x) #layer1 layer2.0.conv1 torch.Size([64, 256, 56, 56])
-        # print("layer1", x.shape)
-        x = self.layer2(x) #layer2 layer3.0.conv1 torch.Size([64, 512, 28, 28])
-        # print("layer2", x.shape)
-        x = self.layer3(x) #layer3 layer4.0.conv1 torch.Size([64, 1024, 14, 14])
-        # print("layer3", x.shape)
-        x = self.layer4(x) #layer4 torch.Size([64, 2048, 7, 7])
-        # print("layer4", x.shape)
+        x = self.layer1(x) 
+        x = self.layer2(x) 
+        x = self.layer3(x)
+        x = self.layer4(x) 
         
         x = self.avgpool(x)
         x = x.view(x.size(0), -1)

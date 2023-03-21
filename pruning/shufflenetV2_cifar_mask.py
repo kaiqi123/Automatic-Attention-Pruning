@@ -54,17 +54,12 @@ class BasicBlock(nn.Module):
 
     def forward(self, x):
         x1, x2 = self.split(x)
-        # out = F.relu(self.bn1(self.conv1(x2)))
         out = self.conv1_relu(self.bn1(self.conv1(x2)))
-        # print(f"BasicBlock, conv1_relu: {out.shape}")
 
         out = self.bn2(self.conv2(out))
-        # print(f"BasicBlock, bn2: {out.shape}")
 
         preact = self.bn3(self.conv3(out))
-        # out = F.relu(preact)
         out = self.conv3_relu(preact)
-        # print(f"BasicBlock, conv3_relu: {out.shape}")
 
         preact = torch.cat([x1, preact], 1)
         out = torch.cat([x1, out], 1)
@@ -87,6 +82,7 @@ class DownBlock(nn.Module):
         self.conv2 = builder.conv_mobileNet(in_channels, mid_channels, kernel_size=1, padding=0, bias=False)
         self.bn2 = nn.BatchNorm2d(mid_channels)
         self.conv2_relu = builder.activation(width=mid_channels)
+        
         # right
         # self.conv3 = nn.Conv2d(in_channels, mid_channels, kernel_size=1, bias=False)
         self.conv3 = builder.conv_mobileNet(in_channels, mid_channels, kernel_size=1, padding=0, bias=False)
@@ -106,23 +102,13 @@ class DownBlock(nn.Module):
     def forward(self, x):
         # left
         out1 = self.bn1(self.conv1(x))
-        # print(f"DownBlock, bn1: {out1.shape}")
 
-        # out1 = F.relu(self.bn2(self.conv2(out1)))
         out1 = self.conv2_relu(self.bn2(self.conv2(out1)))
-        # print(f"DownBlock, conv2_relu: {out1.shape}")
 
         # right
-        # out2 = F.relu(self.bn3(self.conv3(x)))
         out2 = self.conv3_relu(self.bn3(self.conv3(x)))
-        # print(f"DownBlock, conv3_relu: {out2.shape}")
-
         out2 = self.bn4(self.conv4(out2))
-        # print(f"DownBlock, bn4: {out2.shape}")
-
-        # out2 = F.relu(self.bn5(self.conv5(out2)))
         out2 = self.conv5_relu(self.bn5(self.conv5(out2)))
-        # print(f"DownBlock, conv5_relu: {out2.shape}")
 
         # concat
         out = torch.cat([out1, out2], 1)
@@ -130,7 +116,6 @@ class DownBlock(nn.Module):
         return out
 
 
-# class ShuffleNetV2(nn.Module):
 class ShuffleNetV2(PruningModule):
     def __init__(self, builder, net_size, num_classes=10):
         super(ShuffleNetV2, self).__init__()
@@ -163,24 +148,12 @@ class ShuffleNetV2(PruningModule):
         return nn.Sequential(*layers)
 
     def forward(self, x):
-        # print(f"x.shape: {x.shape}")
 
-        # out = F.relu(self.bn1(self.conv1(x)))
         out = self.conv0_relu(self.bn0(self.conv0(x)))
-        # print(f"conv0_relu: {out.shape}")
-
         out, _ = self.layer1(out)
-        # print(f"layer 1: {out.shape}")
-
         out, _ = self.layer2(out)
-        # print(f"layer 2: {out.shape}")
-
         out, _ = self.layer3(out)
-        # print(f"layer 3: {out.shape}")
-
-        # out = F.relu(self.bn2(self.conv2(out)))
         out = self.conv56_relu(self.bn2(self.conv56(out)))
-        # print(f"conv56_relu: {out.shape}")
 
         out = F.avg_pool2d(out, 4)
         out = out.view(out.size(0), -1)
@@ -219,13 +192,7 @@ configs = {
 }
 
 
-# def ShuffleV2(**kwargs):
-#     model = ShuffleNetV2(net_size=1, **kwargs)
-#     return model
-
-
 def build_shufflenetV2(version, num_classes, mask=False, batch_size=128):
-    # config is useless
     assert version == "shufflenetV2"
     print("Version: {}".format(version))
     print("Num classes: {}".format(num_classes))
@@ -235,9 +202,6 @@ def build_shufflenetV2(version, num_classes, mask=False, batch_size=128):
     builder = ModelBuilder(mask=mask, batch_size=batch_size)
     model = ShuffleNetV2(builder, net_size=1, num_classes=num_classes)
 
-    num_trainable_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    assert num_trainable_parameters == 1263278 # fro cifar10 
-
     return model
 
 
@@ -246,14 +210,10 @@ if __name__ == '__main__':
 
     model_version = "shufflenetV2"
     model = build_shufflenetV2(model_version, num_classes=10, mask=False, batch_size=128)
-    # model = ShuffleV2(num_classes=10)
 
     x = torch.randn(1, 3, 32, 32)
     logit = model(x)
     print(logit.shape)
 
-    num_trainable_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad) # 1263278 for cifar10
+    num_trainable_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(num_trainable_parameters)
-
-
-# relu: orginal replace is False, now is True

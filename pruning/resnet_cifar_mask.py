@@ -57,7 +57,6 @@ class BasicBlock(nn.Module):
         out = self.conv1(x)
         out = self.bn1(out)
         out = self.conv1_relu(out)
-        # print(f"conv1_relu.shape: {x.shape}") 
 
         out = self.conv2(out)
         out = self.bn2(out)
@@ -67,12 +66,10 @@ class BasicBlock(nn.Module):
 
         out += residual
         out = self.conv2_relu(out)
-        # print(f"conv2_relu.shape: {x.shape}") 
 
         return out
 
 class ResNet_Cifar(PruningModule):
-# class ResNet_Cifar(nn.Module):
 
     def __init__(self, builder, block, layers, num_classes):
         super(ResNet_Cifar, self).__init__()
@@ -120,21 +117,15 @@ class ResNet_Cifar(PruningModule):
         return nn.Sequential(*layers)
 
     def forward(self, x):
-        # print(f"x.shape: {x.shape}") # (128, 3, 32, 32)
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.conv1_relu(x)
-        # print(f"conv1_relu.shape: {x.shape}") # (128, 16, 32, 32)
         
-        # print("layer1")
         x = self.layer1(x)
-        # print("layer2")
         x = self.layer2(x)
-        # print("layer3")
         x = self.layer3(x)
 
         if 'layer4' in self._modules:
-            # print("layer4")
             x = self.layer4(x)
 
         x = self.avgpool(x)
@@ -142,7 +133,6 @@ class ResNet_Cifar(PruningModule):
         x = self.fc3(x)
 
         return x
-
 
 
 resnet_versions = {
@@ -168,12 +158,10 @@ resnet_versions = {
 def build_resnet(version, config, num_classes, verbose=True, mask=False, batch_size=128):
     # config is useless
     version = resnet_versions[version]
-    # config = resnet_configs[config]
 
     builder = ResNetCifarBuilder(mask=mask, batch_size=batch_size)
     if verbose:
         print("Version: {}".format(version))
-        # print("Config: {}".format(config))
         print("Num classes: {}".format(num_classes))
         print("Mask: {}".format(mask))
         print("Batch size for relu: {}\n".format(batch_size))
@@ -190,10 +178,7 @@ def build_resnet(version, config, num_classes, verbose=True, mask=False, batch_s
 
 if __name__ == '__main__':
     
-    # model_version = "resnet18Cifar"
-    # model_version = "resnet56Cifar"
-    model_version = "resnet50Cifar" #1334618
-
+    model_version = "resnet50Cifar"
     model = build_resnet(model_version, "fanin", num_classes=10, mask=False, batch_size=128)
 
     y = model(torch.randn(1, 3, 32, 32))

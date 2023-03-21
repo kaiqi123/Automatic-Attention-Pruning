@@ -9,6 +9,7 @@ from pruning.model_module import PruningModule, MaskedLinear, MaskedConv2d
 from pruning.model_module import CustomizedRelu
 from pruning.ModelBuilder import ModelBuilder
 
+
 __all__ = [
     'VGG', 'vgg11', 'vgg11_bn', 'vgg13', 'vgg13_bn', 'vgg16', 'vgg16_bn',
     'vgg19_bn', 'vgg19',
@@ -27,10 +28,8 @@ class BLOCK(nn.Module):
 
     def __init__(self, builder, in_channels, out_channels, batch_norm=False):
         super(BLOCK, self).__init__()
-        # self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
-        self.conv1 = builder.conv3x3(in_channels, out_channels, bias=True)
+        self.conv1 = builder.conv3x3(in_channels, out_channels, bias=False)
         self.bn = nn.BatchNorm2d(out_channels)
-        # self.conv1_relu = nn.ReLU(inplace=True)
         self.conv1_relu = builder.activation(width=out_channels)
         self.batch_norm = batch_norm
     
@@ -39,12 +38,10 @@ class BLOCK(nn.Module):
         if self.batch_norm:
             out = self.bn(out)
         out = self.conv1_relu(out)
-        # print(out.shape)
         return out
 
 
 class VGG(PruningModule):
-# class VGG(nn.Module):
 
     def __init__(self, cfg, batch_norm=False, builder=None, num_classes=1000):
         super(VGG, self).__init__()
@@ -67,22 +64,17 @@ class VGG(PruningModule):
 
     def forward(self, x):
         h = x.shape[2]
-        # print("layer1")
         x = self.layer1(x) 
 
-        # print("layer2")
         x = self.pool1(x)
         x = self.layer2(x) 
 
-        # print("layer3")
         x = self.pool2(x)
         x = self.layer3(x)
 
-        # print("layer4")
         x = self.pool3(x)
         x = self.layer4(x) 
 
-        # print("layer5")
         if h == 64:
             x = self.pool4(x)
         x = self.layer5(x) 
@@ -93,7 +85,6 @@ class VGG(PruningModule):
 
         return x
     
-    # @staticmethod
     def _make_layers(self, cfg, batch_norm=False, in_channels=3):
         layers = []
         for v in cfg:
@@ -101,14 +92,8 @@ class VGG(PruningModule):
                 raise EOFError("v is never equal to M")
                 layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
             else:
-                # conv2d = nn.Conv2d(in_channels, v, kernel_size=3, padding=1)
-                # if batch_norm:
-                #     layers += [conv2d, nn.BatchNorm2d(v), nn.ReLU(inplace=True)]
-                # else:
-                #     layers += [conv2d, nn.ReLU(inplace=True)]
                 layers.append(BLOCK(self.builder, in_channels, v, batch_norm=batch_norm))
                 in_channels = v
-        # layers = layers[:-1]
         return nn.Sequential(*layers)
 
     def _initialize_weights(self):
@@ -218,7 +203,7 @@ vgg_model_dict = {
     'vgg8': vgg8_bn,
     'vgg11': vgg11_bn,
     'vgg13': vgg13_bn,
-    'vgg16': vgg16_bn, # 14.728266M, 14724042 no baise
+    'vgg16': vgg16_bn,
     'vgg19': vgg19_bn,
 }
 
@@ -233,19 +218,11 @@ def build_vgg(version, num_classes, mask=False, batch_size=128):
     print("Mask: {}".format(mask))
     print("Batch size for relu: {}\n".format(batch_size))
         
-    # model = version["net"](
-    #     builder=builder,
-    #     block=version["block"], 
-    #     layers=version["layers"], 
-    #     num_classes=num_classes,
-    # )
     return model
 
 
 if __name__ == '__main__':
     import torch
-
-    # net = vgg19_bn(num_classes=100)
 
     version = "vgg16"
     num_classes = 10
@@ -259,20 +236,3 @@ if __name__ == '__main__':
         print(name, p.shape)
     num_trainable_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(num_trainable_parameters)
-    
-    # load from pytorch
-    # model2 = torch.hub.load('pytorch/vision:v0.10.0', 'vgg16', pretrained=True)
-    # num_trainable_parameters = sum(p.numel() for p in model2.parameters() if p.requires_grad)
-    # print(num_trainable_parameters)
-    # for name, p in model2.named_parameters():
-    #     print(name, p.shape)
-
-    # for f in feats:
-    #     print(f.shape, f.min().item())
-    # print(logit.shape)
-
-    # for m in net.get_bn_before_relu():
-    #     if isinstance(m, nn.BatchNorm2d):
-    #         print('pass')
-    #     else:
-    #         print('warning')
