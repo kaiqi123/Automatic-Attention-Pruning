@@ -10,9 +10,9 @@ The link of the paper is: https://arxiv.org/pdf/2303.08595.pdf.
 ## Setup
 We implemented AAP on PyTorch version 1.6.0 and CUDA 11.2, and conducted experiments on 4 Nvidia RTX 2080 Ti GPUs.
 
-We include the Dockerfile that extends the PyTorch NGC container and encapsulates some dependencies. 
+We include the Dockerfile that extends the PyTorch NGC container and encapsulates some dependencies. For the Dockerfile, we follows: https://github.com/NVIDIA/DeepLearningExamples/blob/master/PyTorch/Classification/ConvNets/Dockerfile
 
-About how to build and run the docker, please refer to the commands in the "docker_run.sh".
+About how to build and run the docker, please refer to the commands in the `docker_run.sh`.
 
 ## Run the code
 1. For the results on CIFAR-10, follow the commands in: 
@@ -29,7 +29,7 @@ scripts/tinyImageNet_resnet101.sh
 scripts/tinyImageNet_vgg19.sh
 ```
 
-About preprocessing the Tiny-ImageNet dataset, please follow the commands in scripts/preprocess_tiny_imagenet.sh.
+About preprocessing the Tiny-ImageNet dataset, please follow the commands in `scripts/preprocess_tiny_imagenet.sh`.
 
 
 ## Citation
